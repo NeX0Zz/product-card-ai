@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Черновик карточки товара для интернет-магазина контрольно-измерительных приборов.">
+  <title>Карточка товара</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#result-title">Перейти к результату</a>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <svg class="mark" viewBox="0 0 32 32" width="36" height="36" aria-hidden="true" focusable="false">
+        <circle class="mark__ring" cx="16" cy="16" r="14" fill="none" stroke-width="1.5"/>
+        <path class="mark__ticks" fill="none" stroke-width="1.5" stroke-linecap="round"
+              d="M16 4.2v2.6M5.6 10l2.2 1.3M26.4 10l-2.2 1.3M3.6 18.4h2.6M25.8 18.4h2.6"/>
+        <path class="mark__needle" fill="none" stroke-width="2" stroke-linecap="round" d="M16 18.4l6-7.2"/>
+        <circle class="mark__hub" cx="16" cy="18.4" r="2"/>
+      </svg>
+      <div class="masthead__text">
+        <h1>Карточка товара</h1>
+        <p>Введите данные о приборе и получите черновик карточки для магазина КИП: тексты, характеристики и список вопросов.</p>
+      </div>
+    </div>
+    <div class="ruler" aria-hidden="true"></div>
+  </header>
+
+  <div id="llm-banner" class="notice" role="status" hidden>
+    <div class="notice__inner">
+      <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6.5"/><path d="M8 7.2v4M8 4.7v.1"/></svg>
+      <p id="llm-banner-text"></p>
+    </div>
+  </div>
+
+  <main class="workspace">
+    <section class="pane pane--input" aria-labelledby="input-title">
+      <h2 id="input-title" class="pane__title">Данные товара</h2>
+
+      <div class="examples" role="group" aria-labelledby="examples-label">
+        <span id="examples-label" class="examples__label">Пример:</span>
+        <span id="examples-list" class="examples__list"></span>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Способ ввода данных">
+        <button type="button" role="tab" id="tab-form" class="tab" aria-selected="true" aria-controls="panel-form">Форма</button>
+        <button type="button" role="tab" id="tab-json" class="tab" aria-selected="false" aria-controls="panel-json" tabindex="-1">JSON</button>
+      </div>
+
+      <form id="product-form" novalidate autocomplete="off">
+        <div id="panel-form" role="tabpanel" aria-labelledby="tab-form" class="tabpanel">
+          <div class="field">
+            <label for="f-name">Название товара</label>
+            <input id="f-name" name="name" type="text" maxlength="300" aria-describedby="h-name err-name">
+            <p id="h-name" class="hint">Как в прайс-листе поставщика, с типом и моделью.</p>
+            <p id="err-name" class="field-error" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="f-manufacturer">Производитель</label>
+            <input id="f-manufacturer" name="manufacturer" type="text" maxlength="200" aria-describedby="err-manufacturer">
+            <p id="err-manufacturer" class="field-error" hidden></p>
+          </div>
+
+          <fieldset class="field specs" aria-describedby="h-specs err-specs">
+            <legend>Характеристики</legend>
+            <p id="h-specs" class="hint">Параметр и значение, например «класс точности» и «1,5». Чего нет в списке, модель не придумает.</p>
+            <div id="specs-list" class="specs__list"></div>
+            <p id="err-specs" class="field-error" hidden></p>
+            <button type="button" id="add-spec" class="btn btn--ghost btn--sm">
+              <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 3v10M3 8h10"/></svg>
+              Добавить характеристику
+            </button>
+          </fieldset>
+
+          <div class="field">
+            <label for="f-description">Описание</label>
+            <textarea id="f-description" name="description" rows="6" maxlength="20000" aria-describedby="h-description err-description"></textarea>
+            <p id="h-description" class="hint">Текст от поставщика. Параметры, найденные только здесь, в карточке получат пометку «из описания».</p>
+            <p id="err-description" class="field-error" hidden></p>
+          </div>
+        </div>
+
+        <div id="panel-json" role="tabpanel" aria-labelledby="tab-json" class="tabpanel" hidden>
+          <div class="field">
+            <label for="json-input">Данные товара в формате JSON</label>
+            <textarea id="json-input" class="mono-area" rows="16" spellcheck="false" autocapitalize="off" aria-describedby="h-json json-error"></textarea>
+            <p id="h-json" class="hint">Поля: name, manufacturer, specs (объект «параметр: значение»), description.</p>
+            <div id="json-error" class="alert alert--inline" role="alert" hidden></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="submit" class="btn btn--primary">Сформировать карточку</button>
+          <p class="shortcut"><kbd id="kbd-mod">Ctrl</kbd> + <kbd>Enter</kbd> — то же самое</p>
+        </div>
+        <div id="submit-error" class="alert" role="alert" hidden></div>
+      </form>
+    </section>
+
+    <section class="pane pane--result" aria-labelledby="result-title">
+      <h2 id="result-title" class="pane__title" tabindex="-1">Результат</h2>
+
+      <div id="empty" class="empty">
+        <svg class="empty__mark" viewBox="0 0 48 28" aria-hidden="true" focusable="false">
+          <path d="M1 27h46M1 27V21M9 27v-3M17 27v-3M25 27V21M33 27v-3M41 27v-3M47 27V21" fill="none"/>
+        </svg>
+        <p>Здесь появится черновик карточки: SEO-тексты, таблица характеристик, поисковые запросы и вопросы, которые нужно уточнить до публикации.</p>
+      </div>
+
+      <div id="progress" class="progress" hidden>
+        <p class="progress__title">Формируем карточку…</p>
+        <div class="sweep" aria-hidden="true"><span></span></div>
+        <p class="progress__sub" aria-hidden="true">Обычно это занимает до минуты. Прошло: <span id="elapsed" class="num">0</span> с</p>
+      </div>
+
+      <div id="result" class="result" hidden></div>
+    </section>
+  </main>
+
+  <div id="sr-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

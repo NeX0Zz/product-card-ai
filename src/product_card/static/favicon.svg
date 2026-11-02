@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .r{fill:none;stroke:#1c1f23;stroke-width:2}
+    .n{fill:none;stroke:#c2410c;stroke-width:2.6;stroke-linecap:round}
+    .h{fill:#1c1f23}
+    @media (prefers-color-scheme: dark){.r{stroke:#ecebe6}.h{fill:#ecebe6}.n{stroke:#ff8a4c}}
+  </style>
+  <circle class="r" cx="16" cy="16" r="14"/>
+  <path class="n" d="M16 18.4l6-7.2"/>
+  <circle class="h" cx="16" cy="18.4" r="2.2"/>
+</svg>
